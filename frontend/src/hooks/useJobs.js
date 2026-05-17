@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/jobs';
+// Use a base URL approach to ensure we always hit the /api/jobs endpoint correctly
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = `${BASE_URL}/api/jobs`;
 
 const useJobs = () => {
   const [jobs, setJobs] = useState([]);
