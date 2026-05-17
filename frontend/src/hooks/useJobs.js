@@ -12,7 +12,8 @@ const useJobs = () => {
     try {
       setLoading(true);
       const response = await axios.get(API_URL);
-      setJobs(response.data);
+      // Ensure jobs is always an array to prevent "filter is not a function" crashes
+      setJobs(Array.isArray(response.data) ? response.data : []);
       setError(null);
     } catch (err) {
       console.error('Error fetching jobs:', err);
