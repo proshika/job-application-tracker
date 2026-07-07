@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
-const AddJobModal = ({ isOpen, onClose, onAdd }) => {
+const AddJobModal = ({ isOpen, onClose, onAdd, onEdit, editJob }) => {
   const [formData, setFormData] = useState({
     companyName: '',
     jobTitle: '',
@@ -10,14 +10,43 @@ const AddJobModal = ({ isOpen, onClose, onAdd }) => {
     notes: ''
   });
 
+  const isEditing = !!editJob;
+
+  useEffect(() => {
+    if (editJob) {
+      setFormData({
+        companyName: editJob.companyName,
+        jobTitle: editJob.jobTitle,
+        status: editJob.status,
+        salary: editJob.salary?.toString() || '',
+        notes: editJob.notes || ''
+      });
+    } else {
+      setFormData({
+        companyName: '',
+        jobTitle: '',
+        status: 'Applied',
+        salary: '',
+        notes: ''
+      });
+    }
+  }, [editJob]);
+
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAdd({
+    const jobData = {
       ...formData,
       salary: formData.salary ? Number(formData.salary) : undefined
-    });
+    };
+    
+    if (isEditing && editJob) {
+      onEdit(editJob._id, jobData);
+    } else {
+      onAdd(jobData);
+    }
+    
     setFormData({ companyName: '', jobTitle: '', status: 'Applied', salary: '', notes: '' });
     onClose();
   };
@@ -31,7 +60,7 @@ const AddJobModal = ({ isOpen, onClose, onAdd }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-800">Add New Application</h2>
+          <h2 className="text-xl font-bold text-gray-800">{isEditing ? 'Edit Application' : 'Add New Application'}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X size={24} />
           </button>
@@ -115,7 +144,7 @@ const AddJobModal = ({ isOpen, onClose, onAdd }) => {
               type="submit"
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md shadow-blue-200"
             >
-              Add Job
+              {isEditing ? 'Save Changes' : 'Add Job'}
             </button>
           </div>
         </form>

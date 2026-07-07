@@ -1,5 +1,5 @@
-import React from 'react';
-import { MoreVertical, Calendar, DollarSign, ChevronRight, ChevronLeft } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { MoreVertical, Calendar, DollarSign, ChevronRight, ChevronLeft, Edit2, Trash2 } from 'lucide-react';
 
 const COLUMNS = [
   { id: 'Wishlist', title: 'Wishlist', color: 'bg-purple-100 border-purple-200 text-purple-700' },
@@ -9,7 +9,51 @@ const COLUMNS = [
   { id: 'Rejected', title: 'Rejected', color: 'bg-red-100 border-red-200 text-red-700' },
 ];
 
-const KanbanBoard = ({ jobs = [], onUpdateStatus }) => {
+const DropdownMenu = ({ isOpen, onEdit, onDelete, onClose }) => {
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      ref={menuRef}
+      className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[120px]"
+    >
+      <button 
+        onClick={onEdit}
+        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors"
+      >
+        <Edit2 size={14} />
+        Edit
+      </button>
+      <button 
+        onClick={onDelete}
+        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg transition-colors"
+      >
+        <Trash2 size={14} />
+        Delete
+      </button>
+    </div>
+  );
+};
+
+const KanbanBoard = ({ jobs = [], onUpdateStatus, onEdit, onDelete }) => {
+  const [openMenuId, setOpenMenuId] = useState(null);
+
   const getJobsByStatus = (status) => {
     return jobs.filter(job => job.status === status);
   };
@@ -23,6 +67,20 @@ const KanbanBoard = ({ jobs = [], onUpdateStatus }) => {
     }
   };
 
+  const handleMenuToggle = (jobId) => {
+    setOpenMenuId(openMenuId === jobId ? null : jobId);
+  };
+
+  const handleEdit = (job) => {
+    setOpenMenuId(null);
+    onEdit(job);
+  };
+
+  const handleDelete = (jobId) => {
+    setOpenMenuId(null);
+    onDelete(jobId);
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-6 p-6 overflow-x-auto min-h-[calc(100vh-200px)] items-start">
       {COLUMNS.map((column) => (
@@ -31,9 +89,6 @@ const KanbanBoard = ({ jobs = [], onUpdateStatus }) => {
             <h3 className={`font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full border ${column.color}`}>
               {column.title} <span className="ml-1 opacity-60">({getJobsByStatus(column.id).length})</span>
             </h3>
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-              <MoreVertical size={16} />
-            </button>
           </div>
 
           <div className="space-y-4 overflow-y-auto pr-1">
@@ -46,6 +101,21 @@ const KanbanBoard = ({ jobs = [], onUpdateStatus }) => {
                   <h4 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors leading-tight">
                     {job.companyName}
                   </h4>
+                  <div className="relative">
+                    <button 
+                      onClick={() => handleMenuToggle(job._id)}
+                      className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+                      title="Menu"
+                    >
+                      <MoreVertical size={16} />
+                    </button>
+                    <DropdownMenu 
+                      isOpen={openMenuId === job._id}
+                      onEdit={() => handleEdit(job)}
+                      onDelete={() => handleDelete(job._id)}
+                      onClose={() => setOpenMenuId(null)}
+                    />
+                  </div>
                 </div>
                 <p className="text-sm text-gray-600 mb-3">{job.jobTitle}</p>
                 

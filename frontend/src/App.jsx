@@ -5,8 +5,9 @@ import AddJobModal from './components/AddJobModal';
 import useJobs from './hooks/useJobs';
 
 function App() {
-  const { jobs, loading, error, addJob, updateJob, fetchJobs } = useJobs();
+  const { jobs, loading, error, addJob, updateJob, deleteJob, fetchJobs } = useJobs();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editJob, setEditJob] = useState(null);
 
   const handleAddJob = async (jobData) => {
     try {
@@ -14,6 +15,34 @@ function App() {
     } catch (err) {
       alert('Failed to add job application.');
     }
+  };
+
+  const handleEditJob = async (id, jobData) => {
+    try {
+      await updateJob(id, jobData);
+    } catch (err) {
+      alert('Failed to update job application.');
+    }
+  };
+
+  const handleDeleteJob = async (id) => {
+    if (window.confirm('Are you sure you want to delete this job application?')) {
+      try {
+        await deleteJob(id);
+      } catch (err) {
+        alert('Failed to delete job application.');
+      }
+    }
+  };
+
+  const handleOpenEditModal = (job) => {
+    setEditJob(job);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditJob(null);
   };
 
   const handleUpdateStatus = async (id, newStatus) => {
@@ -46,7 +75,7 @@ function App() {
             </button>
             <div className="h-6 w-px bg-gray-200"></div>
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => { setEditJob(null); setIsModalOpen(true); }}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-md shadow-blue-100 flex items-center gap-2"
             >
               <Plus size={18} />
@@ -71,13 +100,18 @@ function App() {
             <p className="text-gray-400 font-medium">Loading your board...</p>
           </div>
         ) : (
-          <KanbanBoard jobs={jobs} onUpdateStatus={handleUpdateStatus} />
+          <KanbanBoard 
+            jobs={jobs} 
+            onUpdateStatus={handleUpdateStatus}
+            onEdit={handleOpenEditModal}
+            onDelete={handleDeleteJob}
+          />
         )}
       </main>
 
       {/* Floating Action Button (Mobile) */}
       <button
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => { setEditJob(null); setIsModalOpen(true); }}
         className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-transform active:scale-95 z-20"
       >
         <Plus size={28} />
@@ -86,8 +120,10 @@ function App() {
       {/* Modal */}
       <AddJobModal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onAdd={handleAddJob} 
+        onClose={handleCloseModal} 
+        onAdd={handleAddJob}
+        onEdit={handleEditJob}
+        editJob={editJob}
       />
     </div>
   );
