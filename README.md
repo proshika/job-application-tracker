@@ -23,7 +23,17 @@ JobTracker is a production-ready, full-stack MERN application built to help deve
 * **Serverless Architecture** (Express API mapped dynamically to secure serverless runtimes)
 
 ---
+## Key Features
 
+- Add and manage job applications
+- Track application status
+- Kanban-style application pipeline
+- Update application details
+- Delete applications
+- Persistent data storage
+- Responsive UI
+
+---
 ## 🏗️ System Architecture & Data Flow
 
 The application follows a decoupled client-server architecture deployed on cloud infrastructure:
